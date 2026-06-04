@@ -19,7 +19,7 @@ Este es el proyecto del catálogo web para la ferretería **Ferre Tormer**.
 Por razones de seguridad, se ha eliminado la clave de acceso de AppSheet del código fuente. Para que el catálogo funcione correctamente, debes:
 1. Abrir `index.html`.
 2. Buscar la línea `const APPSHEET_ACCESS_KEY = 'TU_CLAVE_AQUI';`.
-3. Reemplazar `'TU_CLAVE_AQUI'` por tu clave real de AppSheet.
+3. Reemplazar `'V2-TTAaj-UPBlO-ccGTR-j5YTz-xopwO-0NLXj-SCe9c-aTTxF'` por tu clave real de AppSheet.
 
 ## Cómo visualizar el proyecto
 Para ver el catálogo localmente, simplemente abre el archivo `index.html` en cualquier navegador web moderno.
