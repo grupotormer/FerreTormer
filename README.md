@@ -16,10 +16,15 @@ Este es el proyecto del catálogo web para la ferretería **Ferre Tormer**.
 - Font Awesome para iconos
 
 ## Configuración de Seguridad
-Por razones de seguridad, se ha eliminado la clave de acceso de AppSheet del código fuente. Para que el catálogo funcione correctamente, debes:
-1. Abrir `index.html`.
-2. Buscar la línea `const APPSHEET_ACCESS_KEY = 'TU_CLAVE_AQUI';`.
-3. Reemplazar `'V2-TTAaj-UPBlO-ccGTR-j5YTz-xopwO-0NLXj-SCe9c-aTTxF'` por tu clave real de AppSheet.
+Por razones de seguridad, las claves de AppSheet se han movido a un archivo externo que no se sube al repositorio.
+
+Para configurar las claves:
+1. Localiza la carpeta `config/`.
+2. Verás un archivo llamado `config.example.js`.
+3. Crea una copia de ese archivo y renómbralo a `config.js`.
+4. Abre `config/config.js` y reemplaza los valores de `APPSHEET_APP_ID` y `APPSHEET_ACCESS_KEY` con tus credenciales reales.
+
+El archivo `config/config.js` ya está incluido en el `.gitignore` para evitar que tus claves se publiquen accidentalmente en GitHub.
 
 ## Cómo visualizar el proyecto
 Para ver el catálogo localmente, simplemente abre el archivo `index.html` en cualquier navegador web moderno.

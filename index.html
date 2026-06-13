@@ -86,14 +86,15 @@
     /* Buscador */      
     #search-box {      
       border: 1.5px solid #d1d5db; border-radius: 9999px;      
-      padding: 8px 20px 8px 44px; font-size: 0.9rem; width: 100%; max-width: 480px;      
+      padding: 4px 12px 4px 36px; font-size: 0.85rem; width: 100%; max-width: 480px;
+      height: 32px;
       transition: border-color 0.15s, box-shadow 0.15s; background: #fff;      
     }      
     #search-box:focus {      
       outline: none; border-color: #2563eb;      
       box-shadow: 0 0 0 3px rgba(37,99,235,0.12);      
     }      
-    .search-wrap { position: relative; display: inline-block; width: 100%; max-width: 480px; }      
+    .search-wrap { position: relative; display: inline-block; width: 100%; max-width: 300px; margin: 0 10px; }
     .search-icon {      
       position: absolute; left: 14px; top: 50%;      
       transform: translateY(-50%); color: #9ca3af; font-size: 0.9rem; pointer-events: none;      
@@ -226,6 +227,14 @@
   <div id="topbar-logo-fallback" onclick="showSection('catalogo'); applyFilter('all')"      
        style="display:none" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-sm cursor-pointer mr-2">FT</div>      
       
+  <!-- Buscador en Topbar -->
+  <div class="search-wrap inline-block">
+    <i class="fas fa-search search-icon"></i>
+    <input type="text" id="search-box"
+           placeholder="Buscar..."
+           oninput="onSearch(this.value)" />
+  </div>
+
   <!-- Spacer -->      
   <div style="flex:1"></div>      
       
@@ -315,15 +324,6 @@
     <section id="section-catalogo" class="section active py-8">      
       <div class="container mx-auto px-6">      
       
-        <!-- Buscador -->      
-        <div class="flex justify-center mb-5">      
-          <div class="search-wrap">      
-            <i class="fas fa-search search-icon"></i>      
-            <input type="text" id="search-box"      
-                   placeholder="Buscar producto por nombre o categoría..."      
-                   oninput="onSearch(this.value)" />      
-          </div>      
-        </div>      
         <p id="search-count" class="text-center text-gray-400 text-xs mb-4 hidden"></p>      
       
         <!-- Filtros de categoría -->      
@@ -888,12 +888,11 @@
   <p id="toast-message" class="text-sm font-medium"></p>      
 </div>      
       
+<script src="config/config.js"></script>
 <script>      
   /* ════════════════════════════════      
      CONFIGURACIÓN APPSHEET      
   ════════════════════════════════ */      
-  const APPSHEET_APP_ID     = '5f559e4e-a33c-4f2e-9180-21b935687975';      
-  const APPSHEET_ACCESS_KEY = 'V2-TTAaj-UPBlO-ccGTR-j5YTz-xopwO-0NLXj-SCe9c-aTTxF';       
   const APPSHEET_BASE       = 'https://api.appsheet.com/api/v2/apps/' + APPSHEET_APP_ID + '/tables';      
       
   const TABLA_SKU      = 'stock';      
@@ -1441,6 +1440,7 @@
      BUSCADOR      
   ════════════════════════════════ */      
   function onSearch(query) {      
+    if (query.trim()) showSection('catalogo');
     var q    = query.trim().toLowerCase();      
     var base = filteredByCategory;      
     if (!q) {      
@@ -1592,6 +1592,7 @@
   ════════════════════════════════ */      
   function openProductModal(product) {      
     var modal = document.getElementById('product-modal');      
+    modal.scrollTop = 0;
     var content = document.getElementById('product-detail-content');      
           
     var nombre  = product[COL_NOMBRE]      || 'Sin nombre';      
@@ -1975,6 +1976,7 @@
       statusEl.classList.remove('hidden');      
       setTimeout(function(){ statusEl.classList.add('hidden'); }, 6000);      
       showToast('¡Pedido ' + orderId + ' enviado! ✓');      
+      document.getElementById('main-scroll-area').scrollTop = 0;
       
     } catch (err) {      
       console.error('[AppSheet]', err);      
@@ -2000,6 +2002,7 @@
     if (!nombre || !email || !puesto) { showToast('Completa los campos obligatorios.', 'error'); return; }      
     document.getElementById('job-form-wrap').classList.add('hidden');      
     document.getElementById('job-success').classList.remove('hidden');      
+    document.getElementById('main-scroll-area').scrollTop = 0;
   }      
       
   document.addEventListener('DOMContentLoaded', function() {      
