@@ -1,0 +1,2 @@
+const APPSHEET_APP_ID     = 'TU_APP_ID_AQUI';      
+const APPSHEET_ACCESS_KEY = 'TU_ACCESS_KEY_AQUI';
