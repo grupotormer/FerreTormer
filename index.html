@@ -16,7 +16,9 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 50;      
       background: #1e3a5f;      
       height: 48px;      
-      display: flex; align-items: center;      
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
       padding: 0 16px;      
       box-shadow: 0 2px 8px rgba(0,0,0,0.25);      
     }      
@@ -94,7 +96,7 @@
       outline: none; border-color: #2563eb;      
       box-shadow: 0 0 0 3px rgba(37,99,235,0.12);      
     }      
-    .search-wrap { position: relative; display: inline-block; width: 100%; max-width: 300px; margin: 0 10px; }      
+    .search-wrap { position: relative; display: flex; width: 100%; max-width: 300px; margin: 0 10px; }
     .search-icon {      
       position: absolute; left: 14px; top: 50%;      
       transform: translateY(-50%); color: #9ca3af; font-size: 0.9rem; pointer-events: none;      
@@ -214,37 +216,40 @@
      TOPBAR — siempre visible arriba      
 ══════════════════════════════════════════ -->      
 <div id="topbar">      
-  <!-- Botón hamburguesa -->      
-  <button id="topbar-menu-btn" onclick="toggleSidebar()"      
-          class="text-white text-xl mr-3" style="display:none">      
-    <i class="fas fa-bars"></i>      
-  </button>      
-      
-  <!-- Logo en el topbar -->      
-  <img src="Logoferre.png" alt="Ferre Tormer" class="topbar-logo"      
-       onclick="showSection('catalogo'); applyFilter('all')"      
-       onerror="this.style.display='none'; document.getElementById('topbar-logo-fallback').style.display='flex';" />      
-  <div id="topbar-logo-fallback" onclick="showSection('catalogo'); applyFilter('all')"      
-       style="display:none" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-sm cursor-pointer mr-2">FT</div>      
-      
-  <!-- Buscador en Topbar -->
-  <div class="search-wrap inline-block">      
+  <!-- Columna izquierda: Menú y Logo -->
+  <div class="flex items-center">
+    <!-- Botón hamburguesa -->
+    <button id="topbar-menu-btn" onclick="toggleSidebar()"
+            class="text-white text-xl mr-3 flex lg:hidden">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Logo en el topbar -->
+    <img src="Logoferre.png" alt="Ferre Tormer" class="topbar-logo"
+         onclick="showSection('catalogo'); applyFilter('all')"
+         onerror="this.style.display='none'; document.getElementById('topbar-logo-fallback').style.display='flex';" />
+    <div id="topbar-logo-fallback" onclick="showSection('catalogo'); applyFilter('all')"
+         style="display:none" class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-sm cursor-pointer mr-2">FT</div>
+  </div>
+
+  <!-- Columna central: Buscador -->
+  <div class="search-wrap">
     <i class="fas fa-search search-icon"></i>      
     <input type="text" id="search-box"      
            placeholder="Buscar..."      
            oninput="onSearch(this.value)" />      
   </div>
 
-  <!-- Spacer -->      
-  <div style="flex:1"></div>      
-      
-  <!-- Carrito rápido (solo móvil) -->      
-  <button id="topbar-cart-btn" onclick="showSection('pedido')"      
-          class="relative text-white text-xl ml-3 lg:hidden" style="display:none">      
-    <i class="fas fa-cart-shopping"></i>      
-    <span id="cart-badge-mobile"      
-          class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>      
-  </button>      
+  <!-- Columna derecha: Carrito -->
+  <div class="flex justify-end items-center">
+    <!-- Carrito rápido (solo móvil) -->
+    <button id="topbar-cart-btn" onclick="showSection('pedido')"
+            class="relative text-white text-xl ml-3 flex lg:hidden">
+      <i class="fas fa-cart-shopping"></i>
+      <span id="cart-badge-mobile"
+            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+    </button>
+  </div>
 </div>      
       
 <!-- OVERLAY MÓVIL -->      
@@ -893,7 +898,15 @@
   /* ════════════════════════════════      
      CONFIGURACIÓN APPSHEET      
   ════════════════════════════════ */      
-  const APPSHEET_BASE       = 'https://api.appsheet.com/api/v2/apps/' + APPSHEET_APP_ID + '/tables';      
+  // Verificar credenciales
+  if (typeof APPSHEET_APP_ID === 'undefined' || typeof APPSHEET_ACCESS_KEY === 'undefined') {
+    console.error('CRITICAL: AppSheet credentials not found. Ensure config/config.js is correctly loaded.');
+    alert('Error de configuración: No se encontraron las credenciales de la API.');
+  } else if (APPSHEET_APP_ID.includes('YOUR_APP_ID') || APPSHEET_ACCESS_KEY.includes('YOUR_ACCESS_KEY')) {
+    console.warn('WARNING: AppSheet credentials are using placeholder values.');
+  }
+
+  const APPSHEET_BASE = 'https://api.appsheet.com/api/v2/apps/' + (typeof APPSHEET_APP_ID !== 'undefined' ? APPSHEET_APP_ID : '') + '/tables';
       
   const TABLA_SKU      = 'stock';      
   const TABLA_PEDIDOS  = 'Orders';      
@@ -1119,15 +1132,6 @@
     return url;      
   }      
       
-  /* Mostrar botones móvil del topbar */      
-  function setupTopbar() {      
-    if (window.innerWidth < 1024) {      
-      document.getElementById('topbar-menu-btn').style.display = 'flex';      
-      document.getElementById('topbar-cart-btn').style.display = 'flex';      
-    }      
-  }      
-  window.addEventListener('resize', setupTopbar);      
-  setupTopbar();      
       
   async function initAddressDropdowns() {      
     const deptSelect = document.getElementById('customer-dept');  
