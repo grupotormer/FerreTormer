@@ -394,8 +394,6 @@
         <div id="product-grid"      
              class="hidden grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"></div>      
       
-        <div id="bottom-sentinel" class="h-4"></div>
-
         <!-- Paginación --> 
         <div id="pagination" class="pagination-container hidden"></div> 
  
@@ -1033,17 +1031,13 @@
       
   var allProducts        = [];      
   var filteredByCategory = [];      
-  var productsLoaded     = false;
   var addressLoaded      = false;
   var currentProducts    = []; // Los productos que se muestran actualmente (después de filtros extra) 
   var cart               = {};      
   var activeCategory     = 'all';      
-  var categoriesToShow   = 5;
-  var groupsObserver     = null;
-   
   // Paginación 
   var currentPage = 1; 
-  const itemsPerPage = 28; 
+  const itemsPerPage = 26;
       
   /* ════════════════════════════════      
      NAVEGACIÓN      
@@ -1057,10 +1051,7 @@
     if (window.innerWidth < 1024) closeSidebar();      
     if (id === 'pedido') {
       renderCart();
-      if (!addressLoaded) initAddressDropdowns();
-    }
-    if (id === 'catalogo' && !productsLoaded) {
-      loadProducts();
+      initAddressDropdowns();
     }
      
     // Requerimiento 1: Iniciar arriba 
@@ -1151,6 +1142,7 @@
       
       
   async function initAddressDropdowns() {      
+    if (addressLoaded) return;
     const deptSelect = document.getElementById('customer-dept');  
       
     try {  
@@ -1264,7 +1256,6 @@
       allProducts = Array.isArray(data) ? data : (data.Rows || []);      
       filteredByCategory = allProducts;      
       currentProducts = allProducts; 
-      productsLoaded = true;
       buildCategoryFilters(allProducts);      
       buildBrandFilter(allProducts);    
       renderProducts(allProducts);      
@@ -1365,7 +1356,6 @@
   ════════════════════════════════ */      
   function applyFilter(category) {      
     activeCategory = category;      
-    categoriesToShow = 5;
       
     var filterBar = document.getElementById('filter-buttons');      
     var banner    = document.getElementById('category-banner');      
@@ -1504,7 +1494,6 @@
     currentProducts = products; 
     var grid = document.getElementById('product-grid');      
     var paginationEl = document.getElementById('pagination'); 
-    var sentinel = document.getElementById('bottom-sentinel');
     document.getElementById('loading-state').classList.add('hidden');      
       
     if (!products || products.length === 0) {      
@@ -1515,59 +1504,13 @@
       document.getElementById('no-results').classList.remove('hidden');      
       grid.classList.add('hidden');      
       paginationEl.classList.add('hidden'); 
-      if (sentinel) sentinel.style.display = 'none';
       return;      
     }      
       
     document.getElementById('no-results').classList.add('hidden');      
     grid.classList.remove('hidden');      
-    if (sentinel) sentinel.style.display = 'block';
-
-    // Grouping logic for "All" view without search
-    if (activeCategory === 'all' && !searchQuery) {
-        paginationEl.classList.add('hidden');
-
-        // Group by category
-        const groups = {};
-        products.forEach(p => {
-            const cat = p[COL_CATEGORIA] || 'Otros';
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(p);
-        });
-
-        const catNames = Object.keys(groups).sort();
-        const visibleCats = catNames.slice(0, categoriesToShow);
-
-        grid.innerHTML = '';
-        grid.className = 'flex flex-col gap-12 w-full'; // sections
-
-        visibleCats.forEach(catName => {
-            const section = document.createElement('div');
-            section.className = 'category-section';
-            section.innerHTML = `
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-folder-open text-blue-600"></i> ${catName}
-                    <span class="text-xs font-normal text-gray-400">(${groups[catName].length} productos)</span>
-                </h2>
-                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    ${groups[catName].map(p => renderProductCard(p, searchQuery)).join('')}
-                </div>
-            `;
-            grid.appendChild(section);
-        });
-
-        if (categoriesToShow < catNames.length) {
-            setupSentinel();
-        } else if (sentinel) {
-            sentinel.style.display = 'none';
-        }
-        return;
-    }
-
-    // Standard Grid for specific categories or search
     grid.className = 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6';
-    if (sentinel) sentinel.style.display = 'none';
-      
+
     // Requerimiento 5: Paginación 
     const totalPages = Math.ceil(products.length / itemsPerPage); 
     if (totalPages > 1) { 
@@ -1630,17 +1573,6 @@
         + '</div></div></div>';
   }
 
-  function setupSentinel() {
-      if (groupsObserver) groupsObserver.disconnect();
-      groupsObserver = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) {
-              categoriesToShow += 5;
-              renderProducts(currentProducts);
-          }
-      }, { rootMargin: '400px' });
-      const sentinel = document.getElementById('bottom-sentinel');
-      if (sentinel) groupsObserver.observe(sentinel);
-  }
  
   function renderPagination(totalPages) { 
     var paginationEl = document.getElementById('pagination'); 
@@ -1649,8 +1581,16 @@
         <i class="fas fa-chevron-left"></i> 
       </button> 
     `; 
+
+    // Show max 5 page numbers
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
      
-    for (let i = 1; i <= totalPages; i++) { 
+    for (let i = startPage; i <= endPage; i++) {
       html += ` 
         <button onclick="goToPage(${i})" class="page-btn ${i === currentPage ? 'active' : ''}"> 
           ${i} 
@@ -2092,6 +2032,7 @@
   }      
       
   document.addEventListener('DOMContentLoaded', function() {      
+    loadProducts();
     if (window.innerWidth >= 1024) {   
       openSidebar();   
     }   
