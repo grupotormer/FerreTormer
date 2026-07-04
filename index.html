@@ -1043,7 +1043,7 @@
    
   // Paginación 
   var currentPage = 1; 
-  const itemsPerPage = 28; 
+  const itemsPerPage = 26;
       
   /* ════════════════════════════════      
      NAVEGACIÓN      
@@ -1366,6 +1366,7 @@
   function applyFilter(category) {      
     activeCategory = category;      
     categoriesToShow = 5;
+    document.getElementById('main-scroll-area').scrollTo(0, 0);
       
     var filterBar = document.getElementById('filter-buttons');      
     var banner    = document.getElementById('category-banner');      
@@ -1521,52 +1522,10 @@
       
     document.getElementById('no-results').classList.add('hidden');      
     grid.classList.remove('hidden');      
-    if (sentinel) sentinel.style.display = 'block';
-
-    // Grouping logic for "All" view without search
-    if (activeCategory === 'all' && !searchQuery) {
-        paginationEl.classList.add('hidden');
-
-        // Group by category
-        const groups = {};
-        products.forEach(p => {
-            const cat = p[COL_CATEGORIA] || 'Otros';
-            if (!groups[cat]) groups[cat] = [];
-            groups[cat].push(p);
-        });
-
-        const catNames = Object.keys(groups).sort();
-        const visibleCats = catNames.slice(0, categoriesToShow);
-
-        grid.innerHTML = '';
-        grid.className = 'flex flex-col gap-12 w-full'; // sections
-
-        visibleCats.forEach(catName => {
-            const section = document.createElement('div');
-            section.className = 'category-section';
-            section.innerHTML = `
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-folder-open text-blue-600"></i> ${catName}
-                    <span class="text-xs font-normal text-gray-400">(${groups[catName].length} productos)</span>
-                </h2>
-                <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                    ${groups[catName].map(p => renderProductCard(p, searchQuery)).join('')}
-                </div>
-            `;
-            grid.appendChild(section);
-        });
-
-        if (categoriesToShow < catNames.length) {
-            setupSentinel();
-        } else if (sentinel) {
-            sentinel.style.display = 'none';
-        }
-        return;
-    }
-
-    // Standard Grid for specific categories or search
-    grid.className = 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6';
     if (sentinel) sentinel.style.display = 'none';
+
+    // Standard Grid for all views
+    grid.className = 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6';
       
     // Requerimiento 5: Paginación 
     const totalPages = Math.ceil(products.length / itemsPerPage); 
@@ -1630,17 +1589,6 @@
         + '</div></div></div>';
   }
 
-  function setupSentinel() {
-      if (groupsObserver) groupsObserver.disconnect();
-      groupsObserver = new IntersectionObserver(entries => {
-          if (entries[0].isIntersecting) {
-              categoriesToShow += 5;
-              renderProducts(currentProducts);
-          }
-      }, { rootMargin: '400px' });
-      const sentinel = document.getElementById('bottom-sentinel');
-      if (sentinel) groupsObserver.observe(sentinel);
-  }
  
   function renderPagination(totalPages) { 
     var paginationEl = document.getElementById('pagination'); 
@@ -1650,7 +1598,24 @@
       </button> 
     `; 
      
-    for (let i = 1; i <= totalPages; i++) { 
+    let startPage, endPage;
+    if (totalPages <= 5) {
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      if (currentPage <= 3) {
+        startPage = 1;
+        endPage = 5;
+      } else if (currentPage + 2 >= totalPages) {
+        startPage = totalPages - 4;
+        endPage = totalPages;
+      } else {
+        startPage = currentPage - 2;
+        endPage = currentPage + 2;
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
       html += ` 
         <button onclick="goToPage(${i})" class="page-btn ${i === currentPage ? 'active' : ''}"> 
           ${i} 
@@ -2094,7 +2059,8 @@
   document.addEventListener('DOMContentLoaded', function() {      
     if (window.innerWidth >= 1024) {   
       openSidebar();   
-    }   
+    }
+    loadProducts();
   });      
 </script>      
 </body>      
