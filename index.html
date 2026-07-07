@@ -1366,7 +1366,6 @@
   function applyFilter(category) {      
     activeCategory = category;      
     categoriesToShow = 5;
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
       
     var filterBar = document.getElementById('filter-buttons');      
     var banner    = document.getElementById('category-banner');      
@@ -1456,9 +1455,6 @@
       
     currentPage = 1; 
     renderProducts(filteredByCategory);      
-     
-    // Requerimiento 1: Iniciar arriba (al cambiar categoría) 
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
   }      
       
   /* ════════════════════════════════      
@@ -1502,6 +1498,7 @@
      RENDERIZAR TARJETAS      
   ════════════════════════════════ */      
   function renderProducts(products, searchQuery) {      
+    document.getElementById('main-scroll-area').scrollTo(0, 0);
     currentProducts = products; 
     var grid = document.getElementById('product-grid');      
     var paginationEl = document.getElementById('pagination'); 
@@ -1635,7 +1632,6 @@
   function goToPage(page) { 
     currentPage = page; 
     renderProducts(currentProducts); 
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
   } 
       
   /* ════════════════════════════════      
