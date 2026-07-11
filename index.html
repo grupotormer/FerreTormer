@@ -1070,6 +1070,30 @@
       
   </main>      
 </div>      
+
+<!-- MODAL DE DESCARGA O IMPRESIÓN DE COMPROBANTE -->
+<div id="invoice-modal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-md w-full mx-4 text-center transform transition-all scale-95 opacity-0 duration-300" id="invoice-modal-content">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-file-circle-check text-green-600 text-3xl animate-bounce"></i>
+    </div>
+    <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Pedido Procesado!</h3>
+    <p class="text-sm text-gray-500 mb-6 font-medium">Tu pedido <strong id="invoice-modal-order-id" class="text-blue-600 font-mono">FT-XXXXXX</strong> ha sido enviado correctamente.</p>
+
+    <div class="space-y-3 mb-6">
+      <button onclick="printInvoiceFromModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+        <i class="fas fa-print"></i> Imprimir o Guardar PDF
+      </button>
+      <button onclick="downloadInvoiceFromModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2 border border-gray-200">
+        <i class="fas fa-download"></i> Descargar Comprobante HTML
+      </button>
+    </div>
+
+    <button onclick="closeInvoiceModal()" class="text-gray-400 hover:text-gray-600 font-semibold text-sm underline transition-colors">
+      Cerrar Ventana
+    </button>
+  </div>
+</div>
       
 <!-- TOAST -->      
 <div id="toast"      
@@ -2309,6 +2333,50 @@
     }
   }
 
+  var currentInvoiceBlobUrl = null;
+  var currentInvoiceOrderId = null;
+
+  function showInvoiceModal(orderId) {
+    const modal = document.getElementById('invoice-modal');
+    const content = document.getElementById('invoice-modal-content');
+    const orderIdEl = document.getElementById('invoice-modal-order-id');
+
+    orderIdEl.textContent = orderId;
+
+    modal.classList.remove('hidden');
+    // Forzar reflow para que la animación funcione
+    void modal.offsetWidth;
+    content.classList.remove('scale-95', 'opacity-0');
+    content.classList.add('scale-100', 'opacity-100');
+  }
+
+  function closeInvoiceModal() {
+    const modal = document.getElementById('invoice-modal');
+    const content = document.getElementById('invoice-modal-content');
+
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  function printInvoiceFromModal() {
+    if (!currentInvoiceBlobUrl) return;
+    window.open(currentInvoiceBlobUrl, '_blank');
+  }
+
+  function downloadInvoiceFromModal() {
+    if (!currentInvoiceBlobUrl || !currentInvoiceOrderId) return;
+    const link = document.createElement('a');
+    link.href = currentInvoiceBlobUrl;
+    link.setAttribute('download', `pedido-${currentInvoiceOrderId}.html`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   async function downloadOrderInvoice(orderId, clientData, items, totals) {
     const logoBase64 = await imageToBase64('Logoferre.png') || 'Logoferre.png';
 
@@ -2562,16 +2630,10 @@
 </html>
     `;
 
-    // Crear blob y descargar
+    // Crear blob y guardar en variables globales para la ventana flotante
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `pedido-${orderId}.html`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    currentInvoiceBlobUrl = URL.createObjectURL(blob);
+    currentInvoiceOrderId = orderId;
   }
 
   async function placeOrder() {      
@@ -2702,6 +2764,7 @@
 
       try {
         await downloadOrderInvoice(orderId, clientData, items, totals);
+        showInvoiceModal(orderId);
       } catch (invoiceErr) {
         console.error('Error generating invoice:', invoiceErr);
       }
