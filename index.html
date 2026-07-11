@@ -1064,7 +1064,7 @@
     }
      
     // Requerimiento 1: Iniciar arriba 
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
+    window.scrollTo(0, 0);
   }      
       
   function toggleSidebar() {   
@@ -1498,7 +1498,7 @@
      RENDERIZAR TARJETAS      
   ════════════════════════════════ */      
   function renderProducts(products, searchQuery) {      
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
+    window.scrollTo(0, 0);
     currentProducts = products; 
     var grid = document.getElementById('product-grid');      
     var paginationEl = document.getElementById('pagination'); 
@@ -1632,7 +1632,7 @@
   function goToPage(page) { 
     currentPage = page; 
     renderProducts(currentProducts); 
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
+    window.scrollTo(0, 0);
   } 
       
   /* ════════════════════════════════      
@@ -2024,7 +2024,7 @@
       statusEl.classList.remove('hidden');      
       setTimeout(function(){ statusEl.classList.add('hidden'); }, 6000);      
       showToast('¡Pedido ' + orderId + ' enviado! ✓');      
-      document.getElementById('main-scroll-area').scrollTo(0, 0);
+      window.scrollTo(0, 0);
       
     } catch (err) {      
       console.error('[AppSheet]', err);      
@@ -2050,7 +2050,7 @@
     if (!nombre || !email || !puesto) { showToast('Completa los campos obligatorios.', 'error'); return; }      
     document.getElementById('job-form-wrap').classList.add('hidden');      
     document.getElementById('job-success').classList.remove('hidden');      
-    document.getElementById('main-scroll-area').scrollTo(0, 0);
+    window.scrollTo(0, 0);
   }      
       
   document.addEventListener('DOMContentLoaded', function() {      
