@@ -472,8 +472,39 @@
     <!-- ── CARRITO Y PEDIDO ── -->      
     <section id="section-pedido" class="section py-10 bg-gray-100 min-h-screen">      
       <div class="container mx-auto px-6">      
-        <h2 class="text-3xl font-bold text-center mb-8">Tu Pedido</h2>      
+        <h2 class="text-3xl font-bold text-center mb-6">Tu Pedido</h2>
       
+        <!-- Stepper Visual -->
+        <div class="mb-8 max-w-xl mx-auto">
+          <div class="flex items-center justify-between">
+            <!-- Step 1 -->
+            <div class="flex flex-col items-center flex-1">
+              <div id="stepper-step-1" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold transition-all shadow-md">
+                1
+              </div>
+              <span class="text-[10px] sm:text-xs mt-2 font-semibold text-blue-800 text-center">Carrito</span>
+            </div>
+            <!-- Line 1 -->
+            <div class="flex-1 h-1 bg-gray-300 mx-1 sm:mx-2" id="stepper-line-1"></div>
+            <!-- Step 2 -->
+            <div class="flex flex-col items-center flex-1">
+              <div id="stepper-step-2" class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold transition-all">
+                2
+              </div>
+              <span class="text-[10px] sm:text-xs mt-2 font-medium text-gray-500 text-center">Datos y Entrega</span>
+            </div>
+            <!-- Line 2 -->
+            <div class="flex-1 h-1 bg-gray-300 mx-1 sm:mx-2" id="stepper-line-2"></div>
+            <!-- Step 3 -->
+            <div class="flex flex-col items-center flex-1">
+              <div id="stepper-step-3" class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold transition-all">
+                3
+              </div>
+              <span class="text-[10px] sm:text-xs mt-2 font-medium text-gray-500 text-center">Resumen</span>
+            </div>
+          </div>
+        </div>
+
         <div id="cart-empty-msg" class="hidden text-center py-16">      
           <i class="fas fa-cart-shopping text-6xl text-gray-300 mb-5"></i>      
           <p class="text-gray-500 text-lg mb-6">Tu carrito está vacío.</p>      
@@ -484,7 +515,8 @@
         </div>      
       
         <div id="cart-content">      
-          <div class="bg-white p-6 rounded-lg shadow-md mb-8">      
+          <!-- Step 1: Carrito -->
+          <div id="checkout-step-1" class="bg-white p-6 rounded-lg shadow-md mb-8">
             <h3 class="text-xl font-semibold mb-4">Productos Seleccionados</h3>      
             <div id="cart-items" class="space-y-3 max-h-60 overflow-y-auto">      
               <p class="text-gray-500">No has seleccionado productos aún.</p>      
@@ -496,9 +528,15 @@
                 <i class="fas fa-trash mr-1"></i> Vaciar      
               </button>      
             </div>      
+            <div class="text-right mt-6">
+              <button onclick="goToStep(2)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors inline-flex items-center gap-2">
+                Continuar <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
           </div>      
       
-          <div class="bg-white p-6 rounded-lg shadow-md">      
+          <!-- Step 2: Datos y Entrega -->
+          <div id="checkout-step-2" class="hidden bg-white p-6 rounded-lg shadow-md mb-8">
             <h3 class="text-xl font-semibold mb-6">Datos del Cliente</h3>      
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">      
               <div>      
@@ -520,49 +558,140 @@
                 <input type="text" id="customer-ident" required class="form-field" placeholder="DUI o NIT" />      
               </div>      
             </div>      
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">      
-              <div>      
-                <label class="block text-sm font-medium text-gray-700">Departamento *</label>      
-                <select id="customer-dept" required class="form-field" onchange="updateMunicipios()">      
-                  <option value="">Selecciona Departamento...</option>      
-                </select>      
+
+            <h3 class="text-xl font-semibold mb-4 mt-8 border-t pt-6">Método de Entrega</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <label class="border-2 border-blue-500 rounded-lg p-4 flex items-center gap-3 cursor-pointer hover:border-blue-500 transition-colors bg-blue-50/20" id="delivery-pickup-label">
+                <input type="radio" name="delivery-method" value="pickup" checked onchange="toggleDeliveryMethod('pickup')" class="w-4 h-4 text-blue-600" />
+                <div>
+                  <p class="font-bold text-sm text-gray-800">Recoger en Tienda</p>
+                  <p class="text-xs text-gray-500">Sin costo extra (Gratis)</p>
+                </div>
+              </label>
+              <label class="border-2 border-gray-200 rounded-lg p-4 flex items-center gap-3 cursor-pointer hover:border-blue-500 transition-colors" id="delivery-shipping-label">
+                <input type="radio" name="delivery-method" value="shipping" onchange="toggleDeliveryMethod('shipping')" class="w-4 h-4 text-blue-600" />
+                <div>
+                  <p class="font-bold text-sm text-gray-800">Entrega a Domicilio</p>
+                  <p class="text-xs text-gray-500">Costo varía según departamento</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Secciones de Dirección (Condicionales) -->
+            <div id="address-container" class="hidden border-t pt-6">
+              <h4 class="text-lg font-semibold mb-4 text-gray-800">Dirección de Entrega</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Departamento *</label>
+                  <select id="customer-dept" class="form-field" onchange="updateMunicipios(); updateShippingCost();">
+                    <option value="">Selecciona Departamento...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Municipio *</label>
+                  <select id="customer-mun" class="form-field" onchange="updateDistritos()" disabled>
+                    <option value="">Selecciona Municipio...</option>
+                  </select>
+                </div>
               </div>      
-              <div>      
-                <label class="block text-sm font-medium text-gray-700">Municipio *</label>      
-                <select id="customer-mun" required class="form-field" onchange="updateDistritos()" disabled>      
-                  <option value="">Selecciona Municipio...</option>      
-                </select>      
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Distrito *</label>
+                  <select id="customer-dist" class="form-field" disabled>
+                    <option value="">Selecciona Distrito...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Cantón *</label>
+                  <input type="text" id="customer-canton" class="form-field" placeholder="Nombre del cantón" />
+                </div>
               </div>      
-            </div>      
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">      
-              <div>      
-                <label class="block text-sm font-medium text-gray-700">Distrito *</label>      
-                <select id="customer-dist" required class="form-field" disabled>      
-                  <option value="">Selecciona Distrito...</option>      
-                </select>      
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Dirección Detallada *</label>
+                <textarea id="customer-address" rows="2" class="form-field"
+                          placeholder="Calle, pasaje, número de casa, etc..."></textarea>
               </div>      
-              <div>      
-                <label class="block text-sm font-medium text-gray-700">Cantón *</label>      
-                <input type="text" id="customer-canton" required class="form-field" placeholder="Nombre del cantón" />      
-              </div>      
-            </div>      
-            <div class="mb-4">      
-              <label class="block text-sm font-medium text-gray-700">Dirección Detallada *</label>      
-              <textarea id="customer-address" rows="2" required class="form-field"      
-                        placeholder="Calle, pasaje, número de casa, etc..."></textarea>      
-            </div>      
-            <div class="mb-6">      
+            </div>
+
+            <div class="mb-6 border-t pt-6">
               <label class="block text-sm font-medium text-gray-700">Notas Especiales (opcional)</label>      
               <textarea id="order-notes" rows="2" class="form-field"      
                         placeholder="Instrucciones especiales..."></textarea>      
             </div>      
+
+            <div class="flex justify-between items-center mt-8 pt-6 border-t">
+              <button onclick="goToStep(1)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-8 rounded-lg shadow transition-colors inline-flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Atrás
+              </button>
+              <button onclick="goToStep(3)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors inline-flex items-center gap-2">
+                Continuar <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Resumen del Pedido -->
+          <div id="checkout-step-3" class="hidden bg-white p-6 rounded-lg shadow-md mb-8">
+            <h3 class="text-xl font-semibold mb-6">Resumen de tu Pedido</h3>
+
+            <!-- Client Summary Card -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-100">
+              <h4 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide"><i class="fas fa-user mr-2 text-blue-500"></i> Datos del Cliente</h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
+                <p><strong>Nombre:</strong> <span id="summary-client-name">-</span></p>
+                <p><strong>Teléfono:</strong> <span id="summary-client-phone">-</span></p>
+                <p><strong>Correo:</strong> <span id="summary-client-email">-</span></p>
+                <p><strong>Identificación:</strong> <span id="summary-client-ident">-</span></p>
+              </div>
+            </div>
+
+            <!-- Delivery Method Card -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-100">
+              <h4 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide"><i class="fas fa-truck mr-2 text-blue-500"></i> Información de Entrega</h4>
+              <div class="text-sm text-gray-700 space-y-1">
+                <p><strong>Método de Entrega:</strong> <span id="summary-delivery-method" class="font-semibold text-blue-600">-</span></p>
+                <div id="summary-address-wrap" class="hidden mt-2">
+                  <p><strong>Dirección:</strong> <span id="summary-client-address">-</span></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Products Card -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-100">
+              <h4 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide"><i class="fas fa-box-open mr-2 text-blue-500"></i> Productos Seleccionados</h4>
+              <div id="summary-cart-items" class="space-y-3">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+
+            <!-- Total Breakdowns -->
+            <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-100">
+              <h4 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide"><i class="fas fa-receipt mr-2 text-blue-500"></i> Resumen de Pago</h4>
+              <div class="space-y-2 text-sm text-gray-700">
+                <div class="flex justify-between">
+                  <span>Subtotal de Productos:</span>
+                  <span id="summary-subtotal" class="font-medium">$0.00</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Costo de Envío:</span>
+                  <span id="summary-shipping" class="font-medium">$0.00</span>
+                </div>
+                <div class="flex justify-between border-t pt-2 text-base font-bold text-gray-800">
+                  <span>Total a Pagar:</span>
+                  <span id="summary-total" class="text-blue-600">$0.00</span>
+                </div>
+              </div>
+            </div>
+
             <div id="form-status" class="hidden mb-4 p-3 rounded text-center font-medium"></div>      
-            <div class="text-center">      
-              <button id="btn-submit-order" onclick="placeOrder()"      
-                      class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-lg shadow transition-colors">      
-                <i class="fas fa-paper-plane mr-2"></i>Enviar Pedido      
-              </button>      
-            </div>      
+
+            <div class="flex justify-between items-center mt-8 pt-6 border-t">
+              <button onclick="goToStep(2)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-8 rounded-lg shadow transition-colors inline-flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Atrás
+              </button>
+              <button id="btn-submit-order" onclick="placeOrder()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-lg shadow transition-colors inline-flex items-center gap-2">
+                <i class="fas fa-paper-plane mr-2"></i>Confirmar y Enviar Pedido
+              </button>
+            </div>
           </div>      
         </div>      
       
@@ -1094,6 +1223,11 @@
   // Paginación 
   var currentPage = 1; 
   const itemsPerPage = 30;
+
+  // Checkout y Entrega
+  var shippingCost       = 0.00;
+  var deliveryMethod     = 'pickup'; // 'pickup' or 'shipping'
+  var currentCheckoutStep = 1;
       
   /* ════════════════════════════════      
      NAVEGACIÓN      
@@ -1107,6 +1241,7 @@
     if (window.innerWidth < 1024) closeSidebar();      
     if (id === 'pedido') {
       renderCart();
+      goToStep(1);
       if (!addressLoaded) initAddressDropdowns();
     }
     if (id === 'catalogo' && !productsLoaded) {
@@ -1979,6 +2114,185 @@
     }   
   }   
    
+  function toggleDeliveryMethod(method) {
+    deliveryMethod = method;
+    var pickupLabel = document.getElementById('delivery-pickup-label');
+    var shippingLabel = document.getElementById('delivery-shipping-label');
+    var addressContainer = document.getElementById('address-container');
+
+    if (method === 'pickup') {
+      pickupLabel.classList.add('border-blue-500', 'bg-blue-50/20');
+      pickupLabel.classList.remove('border-gray-200');
+      shippingLabel.classList.add('border-gray-200');
+      shippingLabel.classList.remove('border-blue-500', 'bg-blue-50/20');
+      addressContainer.classList.add('hidden');
+      shippingCost = 0.00;
+    } else {
+      shippingLabel.classList.add('border-blue-500', 'bg-blue-50/20');
+      shippingLabel.classList.remove('border-gray-200');
+      pickupLabel.classList.add('border-gray-200');
+      pickupLabel.classList.remove('border-blue-500', 'bg-blue-50/20');
+      addressContainer.classList.remove('hidden');
+      updateShippingCost();
+    }
+  }
+
+  function updateShippingCost() {
+    if (deliveryMethod === 'pickup') {
+      shippingCost = 0.00;
+      return;
+    }
+    const deptSelect = document.getElementById('customer-dept');
+    const selectedOption = deptSelect.options[deptSelect.selectedIndex];
+    const deptName = selectedOption ? (selectedOption.getAttribute('data-name') || deptSelect.value || selectedOption.value) : '';
+
+    if (!deptName) {
+      shippingCost = 0.00;
+      return;
+    }
+
+    if (deptName.toLowerCase().includes('libertad')) {
+      shippingCost = 2.99;
+    } else {
+      shippingCost = 4.99;
+    }
+  }
+
+  function goToStep(step) {
+    var items = Object.values(cart);
+
+    // Step 1 -> 2: Validate subtotal is at least $25.00 and cart is not empty
+    if (step === 2 && currentCheckoutStep === 1) {
+      if (items.length === 0) {
+        showToast('Tu carrito está vacío.', 'error');
+        return;
+      }
+      var subtotal = items.reduce(function(a, i){ return a + (i.precio * i.qty); }, 0);
+      if (subtotal < 25) {
+        showToast('El pedido mínimo debe ser de $25.00', 'error');
+        return;
+      }
+    }
+
+    // Step 2 -> 3: Validate Step 2 fields
+    if (step === 3 && currentCheckoutStep === 2) {
+      var nombre   = document.getElementById('customer-name').value.trim();
+      var telefono = document.getElementById('customer-phone').value.trim();
+      var email    = document.getElementById('customer-email').value.trim();
+      var ident    = document.getElementById('customer-ident').value.trim();
+
+      if (!nombre || !telefono || !email || !ident) {
+        showToast('Completa todos los campos obligatorios del cliente.', 'error');
+        return;
+      }
+
+      if (deliveryMethod === 'shipping') {
+        const deptSelect = document.getElementById('customer-dept');
+        const deptKey = deptSelect.value;
+        const mun = document.getElementById('customer-mun').value;
+        const dist = document.getElementById('customer-dist').value;
+        const canton = document.getElementById('customer-canton').value.trim();
+        const detAddr = document.getElementById('customer-address').value.trim();
+
+        if (!deptKey || !mun || !dist || !canton || !detAddr) {
+          showToast('Completa todos los campos obligatorios de la dirección de entrega.', 'error');
+          return;
+        }
+      }
+
+      // Update Step 3 Resumen
+      renderOrderSummary();
+    }
+
+    currentCheckoutStep = step;
+
+    // Show/Hide steps
+    document.getElementById('checkout-step-1').classList.toggle('hidden', step !== 1);
+    document.getElementById('checkout-step-2').classList.toggle('hidden', step !== 2);
+    document.getElementById('checkout-step-3').classList.toggle('hidden', step !== 3);
+
+    // Update Stepper styling
+    for (var i = 1; i <= 3; i++) {
+      var stepEl = document.getElementById('stepper-step-' + i);
+      var lineEl = document.getElementById('stepper-line-' + (i - 1));
+
+      if (i < step) {
+        // Completed step
+        stepEl.className = "w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold transition-all shadow-md";
+        stepEl.innerHTML = '<i class="fas fa-check"></i>';
+      } else if (i === step) {
+        // Active step
+        stepEl.className = "w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold transition-all shadow-md ring-4 ring-blue-100";
+        stepEl.innerHTML = i;
+      } else {
+        // Pending step
+        stepEl.className = "w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold transition-all";
+        stepEl.innerHTML = i;
+      }
+
+      if (lineEl) {
+        lineEl.className = "flex-1 h-1 mx-1 sm:mx-2 transition-all " + (i <= step ? "bg-blue-600" : "bg-gray-300");
+      }
+    }
+
+    // Scroll to top of section-pedido
+    var scrollArea = document.getElementById('main-scroll-area');
+    if (scrollArea) {
+      scrollArea.scrollTo(0, 0);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function renderOrderSummary() {
+    var items = Object.values(cart);
+    var subtotal = items.reduce(function(a, i){ return a + (i.precio * i.qty); }, 0);
+
+    // Client data
+    document.getElementById('summary-client-name').textContent = document.getElementById('customer-name').value.trim();
+    document.getElementById('summary-client-phone').textContent = document.getElementById('customer-phone').value.trim();
+    document.getElementById('summary-client-email').textContent = document.getElementById('customer-email').value.trim();
+    document.getElementById('summary-client-ident').textContent = document.getElementById('customer-ident').value.trim();
+
+    // Delivery method
+    if (deliveryMethod === 'pickup') {
+      document.getElementById('summary-delivery-method').textContent = 'Recoger en Tienda (Gratis)';
+      document.getElementById('summary-address-wrap').classList.add('hidden');
+    } else {
+      document.getElementById('summary-delivery-method').textContent = 'Entrega a Domicilio';
+
+      const deptSelect = document.getElementById('customer-dept');
+      const deptSelectedOption = deptSelect.options[deptSelect.selectedIndex];
+      const deptName = deptSelectedOption ? (deptSelectedOption.getAttribute('data-name') || deptSelect.value || deptSelectedOption.value) : '';
+
+      const mun = document.getElementById('customer-mun').value;
+      const dist = document.getElementById('customer-dist').value;
+      const canton = document.getElementById('customer-canton').value.trim();
+      const detAddr = document.getElementById('customer-address').value.trim();
+
+      document.getElementById('summary-client-address').textContent = `Depto: ${deptName}, Mun: ${mun}, Dist: ${dist}, Cantón: ${canton}. Dir: ${detAddr}`;
+      document.getElementById('summary-address-wrap').classList.remove('hidden');
+    }
+
+    // Products breakdown
+    var summaryCartItems = document.getElementById('summary-cart-items');
+    summaryCartItems.innerHTML = items.map(function(item) {
+      var sub = item.precio * item.qty;
+      return '<div class="flex justify-between text-sm py-1 border-b border-gray-100">' +
+               '<span>' + item.qty + 'x ' + item.nombre + '</span>' +
+               '<span class="font-semibold">' + formatPrice(sub) + '</span>' +
+             '</div>';
+    }).join('');
+
+    // Shipping cost
+    updateShippingCost();
+    var grandTotal = subtotal + shippingCost;
+
+    document.getElementById('summary-subtotal').textContent = formatPrice(subtotal);
+    document.getElementById('summary-shipping').textContent = formatPrice(shippingCost);
+    document.getElementById('summary-total').textContent = formatPrice(grandTotal);
+  }
+
   async function placeOrder() {      
     var items = Object.values(cart);      
     if (items.length === 0) { showToast('Tu carrito está vacío.', 'error'); return; }      
@@ -1990,7 +2304,7 @@
      
     const deptSelect = document.getElementById('customer-dept'); 
     const deptSelectedOption = deptSelect.options[deptSelect.selectedIndex]; 
-    const deptName = deptSelectedOption.getAttribute('data-name') || deptSelect.value; 
+    const deptName = deptSelectedOption ? (deptSelectedOption.getAttribute('data-name') || deptSelect.value || deptSelectedOption.value) : '';
     const deptKey = deptSelect.value; 
      
     var mun       = document.getElementById('customer-mun').value;      
@@ -1999,26 +2313,43 @@
     var detAddr   = document.getElementById('customer-address').value.trim();      
     var notas     = document.getElementById('order-notes').value.trim();      
       
-    if (!nombre || !telefono || !email || !ident || !deptKey || !mun || !dist || !canton || !detAddr) {       
-      showToast('Completa los campos obligatorios, incluyendo el departamento.', 'error'); return;       
+    if (!nombre || !telefono || !email || !ident) {
+      showToast('Completa los campos obligatorios del cliente.', 'error'); return;
     }      
+
+    if (deliveryMethod === 'shipping') {
+      if (!deptKey || !mun || !dist || !canton || !detAddr) {
+        showToast('Completa los campos obligatorios de la dirección de entrega.', 'error'); return;
+      }
+    }
       
-    var direccion = `Depto: ${deptName}, Mun: ${mun}, Dist: ${dist}, Cantón: ${canton}. Dir: ${detAddr}`;      
+    var direccion = '';
+    if (deliveryMethod === 'pickup') {
+      direccion = 'Recoger en Tienda (Gratis)';
+    } else {
+      direccion = `Depto: ${deptName}, Mun: ${mun}, Dist: ${dist}, Cantón: ${canton}. Dir: ${detAddr}`;
+    }
       
     document.getElementById('order-processing').classList.remove('hidden');      
-    document.getElementById('btn-submit-order').disabled = true;      
+
+    // We select all step-3 buttons or specifically btn-submit-order
+    var submitBtns = document.querySelectorAll('#btn-submit-order');
+    submitBtns.forEach(btn => btn.disabled = true);
       
     try {      
       var orderId     = generateOrderId();      
       var fechaHoy    = new Date().toISOString().split('T')[0];      
-      var totalPedido = items.reduce(function(a, i){ return a + (i.precio * i.qty); }, 0);      
+      var subtotalPedido = items.reduce(function(a, i){ return a + (i.precio * i.qty); }, 0);
       
-      if (totalPedido < 25) {      
+      if (subtotalPedido < 25) {
         showToast('El pedido mínimo debe ser de $25.00', 'error');      
         document.getElementById('order-processing').classList.add('hidden');      
-        document.getElementById('btn-submit-order').disabled = false;      
+        submitBtns.forEach(btn => btn.disabled = false);
         return;      
       }      
+
+      updateShippingCost();
+      var totalPedido = subtotalPedido + shippingCost;
       
       var rowPedido = {};      
       rowPedido[COL_PED_ID]        = orderId;      
@@ -2028,13 +2359,21 @@
       rowPedido[COL_PED_EMAIL]     = email;      
       rowPedido[COL_PED_IDENT]     = ident;      
       rowPedido[COL_PED_DIRECCION] = direccion;      
-      rowPedido[COL_PED_NOTAS]     = notas;      
+      rowPedido[COL_PED_NOTAS]     = notas + (deliveryMethod === 'pickup' ? ' [RECOGER EN TIENDA]' : '');
       rowPedido[COL_PED_TOTAL]     = totalPedido.toFixed(2);      
       rowPedido[COL_PED_ESTADO]    = 'Pendiente';      
-      rowPedido[COL_PED_DEPTO]     = deptKey; 
-      rowPedido[COL_PED_MUN]       = mun; 
-      rowPedido[COL_PED_DIST]      = dist; 
-      rowPedido[COL_PED_CANTON]    = canton; 
+
+      if (deliveryMethod === 'shipping') {
+        rowPedido[COL_PED_DEPTO]     = deptKey;
+        rowPedido[COL_PED_MUN]       = mun;
+        rowPedido[COL_PED_DIST]      = dist;
+        rowPedido[COL_PED_CANTON]    = canton;
+      } else {
+        rowPedido[COL_PED_DEPTO]     = '';
+        rowPedido[COL_PED_MUN]       = '';
+        rowPedido[COL_PED_DIST]      = '';
+        rowPedido[COL_PED_CANTON]    = '';
+      }
       
       var r1 = await fetch(APPSHEET_BASE + '/' + TABLA_PEDIDOS + '/Action', {      
         method: 'POST',      
@@ -2070,6 +2409,12 @@
       document.getElementById('customer-mun').disabled = true;      
       document.getElementById('customer-dist').disabled = true;      
             
+      // Reset delivery method to pickup
+      deliveryMethod = 'pickup';
+      toggleDeliveryMethod('pickup');
+      // Go back to step 1
+      goToStep(1);
+
       renderCart();      
       
       var statusEl = document.getElementById('form-status');      
@@ -2089,7 +2434,7 @@
       showToast('Error al enviar el pedido.', 'error');      
     } finally {      
       document.getElementById('order-processing').classList.add('hidden');      
-      document.getElementById('btn-submit-order').disabled = false;      
+      submitBtns.forEach(btn => btn.disabled = false);
     }      
       
   }      
