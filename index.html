@@ -2358,7 +2358,7 @@
       margin-bottom: 25px;
     }
     .logo-container img {
-      max-height: 80px;
+      max-height: 140px;
       width: auto;
     }
     .owner-details {
@@ -2465,24 +2465,6 @@
       color: #6b7280;
       font-size: 0.85rem;
     }
-    .btn-print {
-      display: block;
-      width: fit-content;
-      margin: 20px auto 0 auto;
-      background-color: #2563eb;
-      color: #ffffff;
-      padding: 10px 20px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 0.9rem;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .btn-print:hover {
-      background-color: #1d4ed8;
-    }
     @media print {
       body {
         background-color: #ffffff;
@@ -2493,13 +2475,10 @@
         padding: 0;
         max-width: 100%;
       }
-      .btn-print {
-        display: none;
-      }
     }
   </style>
 </head>
-<body>
+<body onload="window.print()">
   <div class="container">
     <div class="header">
       <div class="logo-container">
@@ -2576,9 +2555,8 @@
     <div class="footer-msg">
       <p><strong>¡Gracias por comprar en Ferre Tormer!</strong></p>
       <p>Si tiene alguna consulta sobre su pedido, contáctenos vía WhatsApp al +503 7119 0621 o a info@gtormer.com.</p>
+      <p style="font-size: 0.75rem; color: #9ca3af; margin-top: 15px;">Este documento no tiene validez fiscal, emitido con software de Tormer Technologies. www.ferre-tormer.gtormer.com todos los derechos reservados 2026 Grupo Tormer.</p>
     </div>
-
-    <button class="btn-print" onclick="window.print()">Imprimir / Guardar PDF</button>
   </div>
 </body>
 </html>
