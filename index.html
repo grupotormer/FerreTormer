@@ -2102,7 +2102,7 @@
   
         const status = order[COL_PED_ESTADO] || 'Pendiente';   
         const fecha = order[COL_PED_FECHA] || '';   
-        const total = order[COL_PED_TOTAL] || '0.00';   
+        const total = parseFloat(order[COL_PED_TOTAL] || 0);
            
         let statusClass = 'bg-blue-100 text-blue-800';   
         if (status === 'Completado') statusClass = 'bg-green-100 text-green-800';   
@@ -2115,21 +2115,105 @@
           </div>  
         `).join('');  
   
+        // Reconstruct items and totals for downloadOrderInvoice
+        const items = details.map(d => ({
+          qty: parseInt(d[COL_DET_CANTIDAD] || 0),
+          nombre: d[COL_DET_PRODUCTO] || '',
+          precio: parseFloat(d[COL_DET_PRECIO] || 0)
+        }));
+
+        const subtotal = items.reduce((sum, item) => sum + (item.precio * item.qty), 0);
+        const shipping = Math.max(0, total - subtotal);
+
+        const totals = {
+          subtotal: subtotal,
+          shipping: shipping,
+          total: total
+        };
+
+        const deliveryMethod = (order[COL_PED_DIRECCION] || '').includes('Recoger en Tienda') ? 'pickup' : 'shipping';
+        let detAddr = order[COL_PED_DIRECCION] || '';
+        if (detAddr.includes('Dir: ')) {
+          detAddr = detAddr.split('Dir: ').pop();
+        }
+
+        const clientData = {
+          nombre: order[COL_PED_CLIENTE] || '',
+          ident: order[COL_PED_IDENT] || '',
+          telefono: order[COL_PED_TELEFONO] || '',
+          email: order[COL_PED_EMAIL] || '',
+          deliveryMethod: deliveryMethod,
+          deptName: order[COL_PED_DEPTO] || '',
+          mun: order[COL_PED_MUN] || '',
+          dist: order[COL_PED_DIST] || '',
+          canton: order[COL_PED_CANTON] || '',
+          detAddr: detAddr,
+          notas: order[COL_PED_NOTAS] || ''
+        };
+
+        // Generar el invoice blob en segundo plano
+        trackedInvoiceBlobUrl = null;
+        trackedInvoiceOrderId = null;
+        try {
+          trackedInvoiceBlobUrl = await downloadOrderInvoice(orderId, clientData, items, totals);
+          trackedInvoiceOrderId = orderId;
+        } catch (invoiceErr) {
+          console.error('Error generating tracked invoice:', invoiceErr);
+        }
+
         resultEl.innerHTML = `   
-          <div class="border-t pt-6">   
-            <div class="flex justify-between items-center mb-4">   
-              <h3 class="text-lg font-bold">Detalles del Pedido</h3>   
+          <div class="border-t pt-6 space-y-4">
+            <div class="flex justify-between items-center pb-2 border-b">
+              <h3 class="text-lg font-bold text-gray-800">Detalles del Pedido: <span class="font-mono text-blue-600">${orderId}</span></h3>
               <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${status}</span>   
             </div>   
-            <div class="grid grid-cols-2 gap-4 text-sm mb-4">   
-              <div><p class="text-gray-500">Fecha</p><p class="font-medium">${fecha}</p></div>   
-              <div><p class="text-gray-500">Total</p><p class="font-medium text-blue-600">$${total}</p></div>   
-              <div class="col-span-2"><p class="text-gray-500">Cliente</p><p class="font-medium">${order[COL_PED_CLIENTE] || ''}</p></div>   
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 uppercase mb-2"><i class="fas fa-user mr-1 text-blue-500"></i> Datos del Cliente</p>
+                <p class="mb-1"><strong>Nombre:</strong> ${order[COL_PED_CLIENTE] || ''}</p>
+                <p class="mb-1"><strong>Identificación:</strong> ${order[COL_PED_IDENT] || ''}</p>
+                <p class="mb-1"><strong>Teléfono:</strong> ${order[COL_PED_TELEFONO] || ''}</p>
+                <p><strong>Correo:</strong> ${order[COL_PED_EMAIL] || ''}</p>
+              </div>
+
+              <div class="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p class="text-xs font-bold text-gray-400 uppercase mb-2"><i class="fas fa-truck mr-1 text-blue-500"></i> Información de Entrega</p>
+                <p class="mb-1"><strong>Fecha del Pedido:</strong> ${fecha}</p>
+                <p class="mb-1"><strong>Dirección/Método:</strong> ${order[COL_PED_DIRECCION] || ''}</p>
+                ${order[COL_PED_NOTAS] ? `<p><strong>Notas:</strong> ${order[COL_PED_NOTAS]}</p>` : ''}
+              </div>
             </div>   
-            <div class="bg-gray-50 p-3 rounded-lg">  
-              <p class="text-xs font-bold text-gray-400 uppercase mb-2">Productos</p>  
-              ${itemsHtml || '<p class="text-xs text-gray-500 text-center py-2">No se encontraron productos en este pedido.</p>'}  
+
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 text-sm">
+              <p class="text-xs font-bold text-gray-400 uppercase mb-3"><i class="fas fa-box-open mr-1 text-blue-500"></i> Productos Seleccionados</p>
+              <div class="space-y-2 mb-3">
+                ${itemsHtml || '<p class="text-xs text-gray-500 text-center py-2">No se encontraron productos en este pedido.</p>'}
+              </div>
+              <div class="border-t pt-2 space-y-1">
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>Subtotal de Productos:</span>
+                  <span>$${subtotal.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>Costo de Envío:</span>
+                  <span>$${shipping.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between font-bold text-gray-800 text-base pt-1 border-t border-dashed">
+                  <span>Total a Pagar:</span>
+                  <span class="text-blue-600">$${total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>  
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-2">
+              <button onclick="printTrackedInvoice()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 text-sm">
+                <i class="fas fa-print"></i> Imprimir o Guardar PDF
+              </button>
+              <button onclick="downloadTrackedInvoice()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2 border border-gray-200 text-sm">
+                <i class="fas fa-download"></i> Descargar Comprobante HTML
+              </button>
+            </div>
           </div>`;   
       }   
     } catch (err) {   
@@ -2372,6 +2456,30 @@
     const link = document.createElement('a');
     link.href = currentInvoiceBlobUrl;
     link.setAttribute('download', `pedido-${currentInvoiceOrderId}.html`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  var trackedInvoiceBlobUrl = null;
+  var trackedInvoiceOrderId = null;
+
+  function printTrackedInvoice() {
+    if (!trackedInvoiceBlobUrl) {
+      showToast('El comprobante aún se está generando, por favor espera un momento.', 'error');
+      return;
+    }
+    window.open(trackedInvoiceBlobUrl, '_blank');
+  }
+
+  function downloadTrackedInvoice() {
+    if (!trackedInvoiceBlobUrl || !trackedInvoiceOrderId) {
+      showToast('El comprobante aún se está generando, por favor espera un momento.', 'error');
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = trackedInvoiceBlobUrl;
+    link.setAttribute('download', `pedido-${trackedInvoiceOrderId}.html`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2632,8 +2740,10 @@
 
     // Crear blob y guardar en variables globales para la ventana flotante
     const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
-    currentInvoiceBlobUrl = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    currentInvoiceBlobUrl = url;
     currentInvoiceOrderId = orderId;
+    return url;
   }
 
   async function placeOrder() {      
