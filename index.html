@@ -464,7 +464,7 @@
         <div id="product-detail-content"></div>      
         <div class="mt-8 pt-8 border-t">      
           <h3 class="text-xl font-bold mb-4">Productos Similares</h3>      
-          <div id="similar-products" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4"></div>      
+          <div id="similar-products" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4"></div>
         </div>      
       </div>      
     </div>      
@@ -1935,7 +1935,7 @@
       
   function renderSimilarProducts(category, currentId) {      
     var container = document.getElementById('similar-products');      
-    var similar = allProducts.filter(p => p[COL_CATEGORIA] === category && p[COL_ID] !== currentId).slice(0, 5);      
+    var similar = allProducts.filter(p => p[COL_CATEGORIA] === category && p[COL_ID] !== currentId).slice(0, 6);
           
     if (similar.length === 0) {      
       container.innerHTML = '<p class="text-gray-400 text-sm">No hay productos similares disponibles.</p>';      
