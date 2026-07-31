@@ -1471,11 +1471,12 @@
       if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + await response.text());      
       var data = await response.json();      
       var rawProducts = Array.isArray(data) ? data : (data.Rows || []);
-      // Filter out products with a price of 0 or without an image
+      // Filter out products with a price of 0, without an image, or with stock <= 0
       allProducts = rawProducts.filter(function(p) {
         const hasPrice = parseFloat(p[COL_PRECIO] || 0) !== 0;
         const hasImage = p[COL_IMAGEN] && p[COL_IMAGEN].toString().trim() !== '';
-        return hasPrice && hasImage;
+        const hasStock = parseFloat(p[COL_STOCK] || 0) > 0;
+        return hasPrice && hasImage && hasStock;
       });
       filteredByCategory = allProducts;      
       currentProducts = allProducts; 
