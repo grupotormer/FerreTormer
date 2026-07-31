@@ -3,7 +3,7 @@
 Este es el proyecto del catálogo web para la ferretería **Ferre Tormer**. 
 
 ## Características
-- **Catálogo de productos:** Visualización de productos con stock y precios.
+- **Catálogo de productos:** Visualización de productos con inventario en almacén y precios.
 - **Buscador:** Filtrado de productos por nombre o categoría.
 - **Carrito de compras:** Gestión de pedidos locales.
 - **Integración con AppSheet:** Envío de pedidos directamente a una base de datos gestionada.
