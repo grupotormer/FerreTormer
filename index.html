@@ -1776,8 +1776,6 @@
       var catHtml = searchQuery ? highlight(cat,    searchQuery) : cat;      
       
       var isOutOfStock = stock <= 0;      
-      var btnLabel = isOutOfStock ? 'Agotado' : '<i class="fas fa-plus mr-1"></i> Añadir al Carrito';      
-      var btnClass = isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700';      
     
       var priceDisplay = hasOffer     
         ? '<div class="mt-2">' +    
@@ -1787,6 +1785,15 @@
           '</div>'    
         : '<p class="text-blue-600 font-semibold mt-2 text-lg">' + formatPrice(precio) + '</p>';    
       
+      var btnDisplay = isOutOfStock
+        ? '<button disabled class="mt-3 w-full text-white py-2 rounded transition-colors text-sm font-medium bg-gray-400 cursor-not-allowed">Agotado</button>'
+        : '<div class="flex items-center gap-2 mt-3" onclick="event.stopPropagation();">'
+          + '<input type="number" id="qty-card-' + id + '" min="1" max="' + stock + '" value="1" class="w-14 text-center border rounded py-1.5 text-sm outline-none focus:border-blue-500 font-semibold text-gray-800" />'
+          + '<button onclick=\'addToCart(' + addToCartData + ', document.getElementById("qty-card-' + id + '").value)\' '
+          + 'class="flex-1 text-white py-2 rounded transition-colors text-sm font-medium bg-blue-600 hover:bg-blue-700">'
+          + '<i class="fas fa-plus mr-1"></i> Añadir</button>'
+          + '</div>';
+
       return '<div class="product-card" onclick=\'openProductModal(' + productData + ')\'>'      
         + '<img src="' + imgSrc + '" alt="' + nombre + '" class="w-full h-48 object-cover shrink-0"'      
         + ' onerror="this.src=\'https://placehold.co/300x200/e5e7eb/6b7280?text=Sin+imagen\'">'      
@@ -1796,9 +1803,7 @@
         + '<p class="text-gray-400 text-[10px] mb-2">Inventario en almacén: ' + stock + '</p>'
         + '<div class="mt-auto">'   
         + priceDisplay    
-        + '<button ' + (isOutOfStock ? 'disabled' : '') + ' onclick=\'event.stopPropagation(); addToCart(' + addToCartData + ')\' '      
-        + 'class="mt-3 w-full text-white py-2 rounded transition-colors text-sm font-medium ' + btnClass + '">'      
-        + btnLabel + '</button>'      
+        + btnDisplay
         + '</div></div></div>';
   }
 
@@ -1878,8 +1883,6 @@
     var addToCartData = JSON.stringify({ id: id, nombre: nombre, precio: finalPrice, stock: stock }).replace(/'/g, "&#39;");      
       
     var isOutOfStock = stock <= 0;      
-    var btnLabel = isOutOfStock ? 'Agotado' : '<i class="fas fa-cart-plus mr-2"></i> Añadir al Carrito';      
-    var btnClass = isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700';      
     
     var priceDisplay = hasOffer     
       ? `<div>    
@@ -1914,9 +1917,15 @@
             <div class="text-sm text-gray-600 whitespace-pre-wrap">${desc}</div>      
           </div>      
       
-          <button ${isOutOfStock ? 'disabled' : ''} onclick='addToCart(${addToCartData})' class="w-full text-white py-3 rounded-lg transition-colors font-bold ${btnClass}">      
-            ${btnLabel}      
-          </button>      
+          ${isOutOfStock
+            ? `<button disabled class="w-full text-white py-3 rounded-lg transition-colors font-bold bg-gray-400 cursor-not-allowed">Agotado</button>`
+            : `<div class="flex items-center gap-3">
+                <input type="number" id="qty-modal-${id}" min="1" max="${stock}" value="1" class="w-20 text-center border rounded-lg py-3 text-sm outline-none focus:border-blue-500 font-semibold text-gray-800" />
+                <button onclick='addToCart(${addToCartData}, document.getElementById("qty-modal-${id}").value)' class="flex-1 text-white py-3 rounded-lg transition-colors font-bold bg-blue-600 hover:bg-blue-700">
+                  <i class="fas fa-cart-plus mr-2"></i> Añadir al Carrito
+                </button>
+               </div>`
+          }
         </div>      
       </div>      
     `;      
@@ -1964,8 +1973,6 @@
       var addToCartData = JSON.stringify({ id: id, nombre: nombre, precio: finalPrice, stock: stock }).replace(/'/g, "&#39;");      
       
       var isOutOfStock = stock <= 0;      
-      var btnLabel = isOutOfStock ? 'Agotado' : '<i class="fas fa-plus mr-1"></i> Añadir';      
-      var btnClass = isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700';      
     
       var priceDisplay = hasOffer     
         ? '<div class="mt-2">' +    
@@ -1975,6 +1982,15 @@
           '</div>'    
         : '<p class="text-blue-600 font-semibold mt-2 text-base">' + formatPrice(precio) + '</p>';    
     
+      var btnDisplay = isOutOfStock
+        ? '<button disabled class="mt-2 w-full text-white py-1.5 rounded transition-colors text-[10px] font-medium bg-gray-400 cursor-not-allowed">Agotado</button>'
+        : '<div class="flex items-center gap-1.5 mt-2" onclick="event.stopPropagation();">'
+          + '<input type="number" id="qty-similar-' + id + '" min="1" max="' + stock + '" value="1" class="w-10 text-center border rounded py-1 text-xs outline-none focus:border-blue-500 font-semibold text-gray-800" />'
+          + '<button onclick=\'addToCart(' + addToCartData + ', document.getElementById("qty-similar-' + id + '").value)\' '
+          + 'class="flex-1 text-white py-1.5 rounded transition-colors text-[10px] font-medium bg-blue-600 hover:bg-blue-700">'
+          + 'Añadir</button>'
+          + '</div>';
+
       return '<div class="product-card" onclick=\'openProductModal(' + productData + ')\'>'      
         + '<img src="' + imgSrc + '" alt="' + nombre + '" class="w-full h-48 object-cover shrink-0"'      
         + ' onerror="this.src=\'https://placehold.co/300x200/e5e7eb/6b7280?text=Sin+imagen\'">'      
@@ -1984,9 +2000,7 @@
         + '<p class="text-gray-500 text-[10px] mb-1">Inventario en almacén: ' + stock + '</p>'
         + '<div class="mt-auto">'   
         + priceDisplay    
-        + '<button ' + (isOutOfStock ? 'disabled' : '') + ' onclick=\'event.stopPropagation(); addToCart(' + addToCartData + ')\' '      
-        + 'class="mt-2 w-full text-white py-1.5 rounded transition-colors text-[10px] font-medium ' + btnClass + '">'      
-        + btnLabel + '</button>'      
+        + btnDisplay
         + '</div></div></div>';      
     }).join('');      
   }      
@@ -1994,15 +2008,19 @@
   /* ════════════════════════════════      
      CARRITO      
   ════════════════════════════════ */      
-  function addToCart(product) {      
+  function addToCart(product, qty) {
     var id = product.id;      
+    qty = parseInt(qty);
+    if (isNaN(qty) || qty < 1) {
+      qty = 1;
+    }
     var currentQty = cart[id] ? cart[id].qty : 0;      
-    if (currentQty + 1 > product.stock) {      
+    if (currentQty + qty > product.stock) {
       showToast('No hay más inventario en almacén disponible para "' + product.nombre + '"', 'error');
       return;      
     }      
-    if (cart[id]) cart[id].qty++;      
-    else cart[id] = { id: id, nombre: product.nombre, precio: product.precio, qty: 1, stock: product.stock };      
+    if (cart[id]) cart[id].qty += qty;
+    else cart[id] = { id: id, nombre: product.nombre, precio: product.precio, qty: qty, stock: product.stock };
     updateCartBadge();      
     showToast('"' + product.nombre + '" añadido al carrito ✓');      
   }      
@@ -2028,6 +2046,21 @@
     cart[id].qty = Math.max(1, newQty);      
     renderCart(); updateCartBadge();      
   }      
+
+  function setCartQty(id, value) {
+    if (!cart[id]) return;
+    var newQty = parseInt(value);
+    if (isNaN(newQty) || newQty < 1) {
+      newQty = 1;
+    }
+    if (newQty > cart[id].stock) {
+      showToast('No hay más inventario en almacén disponible (' + cart[id].stock + ' máx)', 'error');
+      newQty = cart[id].stock;
+    }
+    cart[id].qty = newQty;
+    renderCart();
+    updateCartBadge();
+  }
       
   function renderCart() {      
     var items   = Object.values(cart);      
@@ -2048,7 +2081,9 @@
         + '<span class="text-sm text-gray-700 flex-1">' + item.nombre + '</span>'      
         + '<div class="flex items-center gap-2">'      
         + '<button onclick="changeQty(\'' + item.id + '\',-1)" class="w-7 h-7 rounded border border-gray-200 text-gray-500 hover:bg-gray-100 text-sm">–</button>'      
-        + '<span class="font-semibold text-gray-800 w-5 text-center text-sm">' + item.qty + '</span>'      
+        + '<input type="number" value="' + item.qty + '" min="1" max="' + item.stock + '" '
+        + 'onchange="setCartQty(\'' + item.id + '\', this.value)" '
+        + 'class="w-12 text-center border rounded py-0.5 text-sm outline-none focus:border-blue-500 font-semibold text-gray-800" />'
         + '<button onclick="changeQty(\'' + item.id + '\',1)" class="w-7 h-7 rounded border border-gray-200 text-gray-500 hover:bg-gray-100 text-sm">+</button>'      
         + '</div>'      
         + '<span class="text-sm font-semibold text-blue-600 w-16 text-right">' + formatPrice(sub) + '</span>'      
